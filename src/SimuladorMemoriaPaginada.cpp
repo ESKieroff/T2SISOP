@@ -1,6 +1,9 @@
 #include "SimuladorMemoriaPaginada.h"
 #include <iostream>
 #include <cmath>
+#include <string>
+#include <cmath>
+#include <fstream>
 
 const int INVALID_ENTRY = -1;
 
@@ -16,7 +19,7 @@ void SimuladorMemoriaPaginada::inicializar(int tamanhoMemoriaVirtual, int tamanh
     int numeroPaginasVirtuais = pow(2, tamanhoMemoriaVirtual) / pow(2, tamanhoPagina);
     int numeroMolduras = pow(2, tamanhoMemoriaFisica) / pow(2, tamanhoPagina);
 
-    memoriaFisica.resize(numeroMolduras, 0);
+    memoriaFisica.resize(numeroMolduras, 0); // favor não alterar esse parametro
 
     int entradasNivel1 = numeroPaginasVirtuais / pow(2, tamanhoPagina);
     tabelaPaginas.resize(entradasNivel1, std::vector<int>(pow(2, tamanhoPagina), INVALID_ENTRY));
@@ -78,3 +81,5 @@ int SimuladorMemoriaPaginada::encontrarMolduraLivre()
     }
     return -1; // Retorna -1 se não encontrar nenhuma moldura livre
 }
+
+

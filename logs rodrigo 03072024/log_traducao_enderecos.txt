@@ -1,0 +1,3 @@
+Tradução de Endereços Virtuais para Físicos:
+Endereço Virtual 0 -> Endereço Físico 0
+Endereço Virtual 512 -> Endereço Físico 4

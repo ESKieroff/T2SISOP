@@ -1,0 +1,3 @@
+tamanhoMemoriaVirtual 32
+tamanhoMemoriaFisica 16
+tamanhoPagina 8
