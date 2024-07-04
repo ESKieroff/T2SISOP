@@ -10,7 +10,7 @@ Este é um simulador em C++ de um sistema de gerência de memória paginada, ond
 
 ## Como Rodar
 
-### Compilaçã
+### Compilação
 1. Clone o repositório:
 
    ```
@@ -23,21 +23,21 @@ Este é um simulador em C++ de um sistema de gerência de memória paginada, ond
    cd T2SISOP
    ```
 
-3. Compile o código fonte:
+3. Compile o código fonte usando Makefile:
 
    ```
-   g++ -std=c++11 -o simulador main.cpp
+   make
    ```
 
 ### Execução
 
-4. Execute o simulador:
+4. Execute o programa de testes:
 
    ```
-   ./simulador
+   ./Testador
    ```
 
-5. Siga as instruções na tela para configurar os parâmetros de tamanho da memória virtual, física e da página.
+5. Verifique os logs gerados para cada conjunto de parâmetros de teste. Os logs estarão nos arquivos `log_*.txt`.
 
 ## Funcionalidades
 
@@ -55,6 +55,14 @@ Configuração com tamanho da memória virtual = 12 bits, tamanho da memória f�
 ### Exemplo 2: Teste de Capacidade
 
 Executar um conjunto de endereços virtuais suficientes para preencher completamente a memória física e verificar o tratamento correto de memória lotada.
+
+## Limpeza
+
+Para remover os arquivos compilados e os logs gerados, utilize o comando:
+
+```
+make clean
+```
 
 ## Contribuições
 
