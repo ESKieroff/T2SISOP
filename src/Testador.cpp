@@ -5,12 +5,10 @@
 #include <vector>
 #include <tuple>
 
-
-
 // Função para ler parâmetros do arquivo config.txt
 bool lerParametrosDoArquivo(const std::string &nomeArquivo, std::vector<std::tuple<int, int, int>> &parametros)
 {
-
+    // Abre o arquivo de configuração
     std::ifstream arquivo(nomeArquivo.c_str());
     if (!arquivo.is_open())
     {
@@ -18,38 +16,48 @@ bool lerParametrosDoArquivo(const std::string &nomeArquivo, std::vector<std::tup
         return false;
     }
 
+    // Lê os parâmetros do arquivo
     int tamanhoMemoriaVirtual, tamanhoMemoriaFisica, tamanhoPagina;
-    while (arquivo >> tamanhoMemoriaVirtual >> tamanhoMemoriaFisica >> tamanhoPagina) // enquanto houver parametros para ler
+    while (arquivo >> tamanhoMemoriaVirtual >> tamanhoMemoriaFisica >> tamanhoPagina)
     {
-        parametros.emplace_back(tamanhoMemoriaVirtual, tamanhoMemoriaFisica, tamanhoPagina); // adiciono a tupla com os parametros na lista
+        // Armazena os parâmetros lidos em um vetor de tuplas
+        parametros.emplace_back(tamanhoMemoriaVirtual, tamanhoMemoriaFisica, tamanhoPagina);
     }
 
+    // Fecha o arquivo
     arquivo.close();
     return true;
 }
 
+// Função para testar a tradução de endereços virtuais para físicos
 void testeTraducaoEnderecos(SimuladorMemoriaPaginada &simulador, std::ofstream &logfile)
 {
     logfile << "Tradução de Endereços Virtuais para Físicos:\n";
 
+    // Define alguns endereços virtuais de teste
     std::vector<int> enderecosVirtuais = {0, 512, 1024, 1536, 2048};
 
+    // Tradução e registro no logfile
     for (int endereco : enderecosVirtuais)
     {
         int enderecoFisico = simulador.traduzirEndereco(endereco);
         logfile << "Endereço Virtual " << endereco << " -> Endereço Físico " << enderecoFisico << "\n";
     }
 
+    // Exibe o estado atual do simulador no logfile
     simulador.exibirEstado(logfile);
 }
 
+// Função para testar a tradução com diferentes tamanhos de página
 void testeTamanhoPagina(SimuladorMemoriaPaginada &simulador, std::ofstream &logfile)
 {
     logfile << "Teste de Tamanho de Página Diferente:\n";
 
+    // Define alguns endereços virtuais de teste
     int enderecosVirtuais[] = {0, 512, 1024, 1536, 2048};
     int numEnderecos = sizeof(enderecosVirtuais) / sizeof(enderecosVirtuais[0]);
 
+    // Tradução e registro no logfile
     for (int i = 0; i < numEnderecos; ++i)
     {
         int enderecoVirtual = enderecosVirtuais[i];
@@ -57,16 +65,20 @@ void testeTamanhoPagina(SimuladorMemoriaPaginada &simulador, std::ofstream &logf
         logfile << "Endereço Virtual " << enderecoVirtual << " -> Endereço Físico " << enderecoFisico << "\n";
     }
 
+    // Exibe o estado atual do simulador no logfile
     simulador.exibirEstado(logfile);
 }
 
+// Função para testar a reutilização de molduras
 void testeReutilizacaoMolduras(SimuladorMemoriaPaginada &simulador, std::ofstream &logfile)
 {
     logfile << "Teste de Reutilização de Molduras:\n";
 
+    // Define alguns endereços virtuais de teste
     int enderecosVirtuais[] = {0, 512, 1024, 1536, 2048};
     int numEnderecos = sizeof(enderecosVirtuais) / sizeof(enderecosVirtuais[0]);
 
+    // Tradução e registro no logfile
     for (int i = 0; i < numEnderecos; ++i)
     {
         int enderecoVirtual = enderecosVirtuais[i];
@@ -74,9 +86,11 @@ void testeReutilizacaoMolduras(SimuladorMemoriaPaginada &simulador, std::ofstrea
         logfile << "Endereço Virtual " << enderecoVirtual << " -> Endereço Físico " << enderecoFisico << "\n";
     }
 
+    // Exibe o estado atual do simulador no logfile
     simulador.exibirEstado(logfile);
 }
 
+// Função para testar a capacidade total da memória física
 void testeCapacidadeMemoria(SimuladorMemoriaPaginada &simulador, std::ofstream &logfile)
 {
     int capacidadeMemoriaFisica = simulador.getCapacidadeMemoriaFisica();
@@ -84,6 +98,7 @@ void testeCapacidadeMemoria(SimuladorMemoriaPaginada &simulador, std::ofstream &
 
     logfile << "Teste de Capacidade Total de Memória Física:\n";
 
+    // Testa a tradução de endereços virtuais até a capacidade máxima da memória física
     for (int enderecoVirtual = 0; enderecoVirtual < capacidadeMemoriaFisica; ++enderecoVirtual)
     {
         int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual);
@@ -103,9 +118,11 @@ void testeCapacidadeMemoria(SimuladorMemoriaPaginada &simulador, std::ofstream &
         logfile << "Todos os " << capacidadeMemoriaFisica << " endereços virtuais alocados com sucesso.\n";
     }
 
+    // Exibe o estado atual do simulador no logfile
     simulador.exibirEstado(logfile);
 }
 
+// Função para executar os testes com parâmetros específicos
 void executarTestes(const std::tuple<int, int, int> &parametros, int testeNumero)
 {
     int tamanhoMemoriaVirtual = std::get<0>(parametros);
@@ -126,6 +143,7 @@ void executarTestes(const std::tuple<int, int, int> &parametros, int testeNumero
     SimuladorMemoriaPaginada simulador;
     simulador.inicializar(tamanhoMemoriaVirtual, tamanhoMemoriaFisica, tamanhoPagina);
 
+    // Executa os testes específicos
     testeCapacidadeMemoria(simulador, logfile);
     testeReutilizacaoMolduras(simulador, logfile);
     testeTamanhoPagina(simulador, logfile);
@@ -134,10 +152,12 @@ void executarTestes(const std::tuple<int, int, int> &parametros, int testeNumero
     logfile.close();
 }
 
+// Função principal
 int main()
 {
     const std::string nomeArquivo = "config.txt";
 
+    // Vetor para armazenar os parâmetros lidos do arquivo
     std::vector<std::tuple<int, int, int>> parametros;
     if (!lerParametrosDoArquivo(nomeArquivo, parametros))
     {
@@ -146,9 +166,9 @@ int main()
 
     int testeNumero = 1;
 
+    // Executa os testes para cada conjunto de parâmetros lidos
     for (const auto &[tamanhoMemoriaVirtual, tamanhoMemoriaFisica, tamanhoPagina] : parametros)
     {
-        
         std::ofstream logfile("log_" + std::to_string(testeNumero) + ".txt");
         if (!logfile.is_open())
         {
