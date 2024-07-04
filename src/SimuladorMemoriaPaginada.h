@@ -9,6 +9,7 @@ public:
     SimuladorMemoriaPaginada(int n = 0, int m = 0, int p = 0);
     void inicializar(int tamanhoMemoriaVirtual, int tamanhoMemoriaFisica, int tamanhoPagina);
     int traduzirEndereco(int enderecoVirtual);
+    int getCapacidadeMemoriaFisica() const;
     void exibirEstado(std::ostream& output);
 
 private:

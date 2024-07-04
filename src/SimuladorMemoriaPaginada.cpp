@@ -82,4 +82,8 @@ int SimuladorMemoriaPaginada::encontrarMolduraLivre()
     return -1; // Retorna -1 se não encontrar nenhuma moldura livre
 }
 
+int SimuladorMemoriaPaginada::getCapacidadeMemoriaFisica() const
+{
+    return memoriaFisica.size();    
+}
 
