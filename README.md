@@ -1,7 +1,7 @@
 
 # Simulador de Sistema de Gerência de Memória Paginada
 
-Este é um simulador em C++ de um sistema de gerência de memória paginada, onde endereços virtuais são traduzidos em endereços físicos usando uma tabela de páginas de dois níveis. O simulador foi desenvolvido como parte de um projeto acadêmico ou de estudo.
+Este é um simulador em C++ de um sistema de gerência de memória paginada, onde endereços virtuais são traduzidos em endereços físicos usando uma tabela de páginas de dois níveis. O simulador foi desenvolvido como parte de um projeto acadêmico de estudo.
 
 ## Requisitos do Sistema
 
@@ -10,8 +10,7 @@ Este é um simulador em C++ de um sistema de gerência de memória paginada, ond
 
 ## Como Rodar
 
-### Compilação
-
+### Compilaçã
 1. Clone o repositório:
 
    ```
