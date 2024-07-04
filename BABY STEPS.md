@@ -332,3 +332,11 @@ A depender do ambiente e das libs, o comando "make" não irá funcionar.
 Alguém poderia testar no Linux, pra sabermos se o terminal vai aceitar de boa ou teremos os mesmos problemas.
 
 Caso alguém se sinta confortável, refatora por gentileza este arquivo e os demais para EN-US pra ficar bonitinho no Github. 
+
+### UPDATE
+
+Foram alteradas as configurações do arquivo "Testador" para encapsular toda parte de testes e gerar um arquivo de log para cada teste realizado. 
+Com ele será possível ajustar os parâmetros no arquivo de teste "config.txt" indicando em inteiros os valores para "tamanhoMemoriaVirtual", "tamanhoMemoriaFisica" e "tamanhoPagina". 
+Ao executar o testador, ele exibe o progresso no terminal e copia os dados da execução para o log correspondente. Assim torna-se possível revisitar os dados persistidos. 
+Detalhes sobre a execução estão descritos no "README". 
+Não será mais necessário utilizar os arquivos de teste individuais. Caso necessite, poderá usá-los fazendo pequenos ajustes, como incluir função para leitura do arquivo de configuração (exemplo de tentativa no "teste_capacidde_memoria").
