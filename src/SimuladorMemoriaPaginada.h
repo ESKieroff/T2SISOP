@@ -13,12 +13,16 @@ public:
     int getCapacidadeMemoriaFisica() const;
     int getCapacidadeMemoriaVirtual() const;
     void exibirEstado(std::ostream &output);
+    void exibirEstatisticas(std::ofstream &logfile) const;
 
 private:
     std::vector<std::vector<int>> tabelaPaginas;
     std::vector<int> memoriaFisica;
     int tamanhoPagina;
     int tamanhoMemoriaVirtual;
+    int hits;
+    int misses;
+
 
     int encontrarMolduraLivre();
 };

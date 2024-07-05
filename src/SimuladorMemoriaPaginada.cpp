@@ -17,11 +17,13 @@ void SimuladorMemoriaPaginada::inicializar(int tamanhoMemoriaVirtual, int tamanh
 {
     this->tamanhoPagina = tamanhoPagina;
     this->tamanhoMemoriaVirtual = tamanhoMemoriaVirtual;
+    hits = 0;
+    misses = 0;
 
     int numeroPaginasVirtuais = pow(2, tamanhoMemoriaVirtual) / pow(2, tamanhoPagina);
     int numeroMolduras = pow(2, tamanhoMemoriaFisica) / pow(2, tamanhoPagina);
 
-    memoriaFisica.resize(numeroMolduras, 0); // favor não alterar esse parametro
+    memoriaFisica.resize(numeroMolduras, 0); 
 
     int entradasNivel1 = numeroPaginasVirtuais / pow(2, tamanhoPagina);
     tabelaPaginas.resize(entradasNivel1, std::vector<int>(pow(2, tamanhoPagina), INVALID_ENTRY));
@@ -40,12 +42,17 @@ int SimuladorMemoriaPaginada::traduzirEndereco(int enderecoVirtual)
         int molduraLivre = encontrarMolduraLivre();
         if (molduraLivre == -1)
         {
+            misses++;
             std::cerr << "Erro: Memória física está lotada!" << std::endl;
             exit(1);
         }
 
         tabelaPaginas[entradaNivel1][entradaNivel2] = molduraLivre;
     }
+    else
+    {
+        hits++; // a página já está mapeada na memória física
+    }   
 
     return tabelaPaginas[entradaNivel1][entradaNivel2] * pow(2, tamanhoPagina) + offset;
 }
@@ -92,4 +99,11 @@ int SimuladorMemoriaPaginada::getCapacidadeMemoriaFisica() const
 int SimuladorMemoriaPaginada::getCapacidadeMemoriaVirtual() const
 {
     return tamanhoMemoriaVirtual;
+}
+
+void SimuladorMemoriaPaginada::exibirEstatisticas(std::ofstream &logfile) const
+{
+    logfile << "Estatísticas:\n";
+    logfile << "Hits: " << hits << "\n";
+    logfile << "Misses: " << misses << "\n";
 }

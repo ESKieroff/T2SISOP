@@ -136,6 +136,7 @@ void executarTestes(const std::tuple<int, int, int> &parametros, int testeNumero
     testeReutilizacaoMolduras(simulador, logfile);
     testeTamanhoPagina(simulador, logfile);
     testeTraducaoEnderecos(simulador, logfile);
+    simulador.exibirEstatisticas(logfile);
 
     logfile.close();
 }
@@ -190,7 +191,8 @@ int main()
         testeReutilizacaoMolduras(simulador, logfile);
         testeTamanhoPagina(simulador, logfile);
         testeTraducaoEnderecos(simulador, logfile);
-
+        simulador.exibirEstatisticas(logfile);
+        
         logfile << "Fim da bateria de teste. " << testeNumero << "\n";
         logfile.close();
         testeNumero++;
