@@ -17,7 +17,7 @@ int main()
     for (int i = 0; i < numEnderecos; ++i)
     {
         int enderecoVirtual = enderecosVirtuais[i];
-        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual);
+        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual, logfile);
         std::cout << "Endereço Virtual " << enderecoVirtual << " -> Endereço Físico " << enderecoFisico << "\n";
     }
 

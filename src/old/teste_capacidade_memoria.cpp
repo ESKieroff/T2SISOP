@@ -76,7 +76,7 @@ int main()
 
     for (int enderecoVirtual = 0; enderecoVirtual < capacidadeMemoriaFisica; ++enderecoVirtual)
     {
-        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual);
+        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual, logfile);
 
         if (enderecoFisico == -1)
         {
