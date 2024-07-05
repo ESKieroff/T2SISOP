@@ -1,6 +1,0 @@
-Teste de Tamanho de Página Diferente:
-Endereço Virtual 0 -> Endereço Físico -2147483648
-Endereço Virtual 512 -> Endereço Físico -2147483648
-Endereço Virtual 1024 -> Endereço Físico 0
-Endereço Virtual 1536 -> Endereço Físico -2147483648
-Endereço Virtual 2048 -> Endereço Físico -2147483648
