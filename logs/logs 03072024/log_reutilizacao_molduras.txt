@@ -1,0 +1,6 @@
+Teste de Reutilização de Molduras:
+Endereço Virtual 0 -> Endereço Físico 0
+Endereço Virtual 512 -> Endereço Físico 16
+Endereço Virtual 1024 -> Endereço Físico 32
+Endereço Virtual 1536 -> Endereço Físico 48
+Endereço Virtual 2048 -> Endereço Físico 64
