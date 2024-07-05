@@ -5,6 +5,7 @@
 #include <cmath>
 #include <fstream>
 
+
 const int INVALID_ENTRY = -1;
 
 SimuladorMemoriaPaginada::SimuladorMemoriaPaginada(int n, int m, int p)
@@ -15,6 +16,7 @@ SimuladorMemoriaPaginada::SimuladorMemoriaPaginada(int n, int m, int p)
 void SimuladorMemoriaPaginada::inicializar(int tamanhoMemoriaVirtual, int tamanhoMemoriaFisica, int tamanhoPagina)
 {
     this->tamanhoPagina = tamanhoPagina;
+    this->tamanhoMemoriaVirtual = tamanhoMemoriaVirtual;
 
     int numeroPaginasVirtuais = pow(2, tamanhoMemoriaVirtual) / pow(2, tamanhoPagina);
     int numeroMolduras = pow(2, tamanhoMemoriaFisica) / pow(2, tamanhoPagina);
@@ -87,3 +89,7 @@ int SimuladorMemoriaPaginada::getCapacidadeMemoriaFisica() const
     return memoriaFisica.size();    
 }
 
+int SimuladorMemoriaPaginada::getCapacidadeMemoriaVirtual() const
+{
+    return tamanhoMemoriaVirtual;
+}

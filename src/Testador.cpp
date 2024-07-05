@@ -1,10 +1,11 @@
 #include "SimuladorMemoriaPaginada.h"
+#include "Testador.h"
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
 #include <tuple>
-
+#include <random>
 
 
 // Função para ler parâmetros do arquivo config.txt
@@ -32,7 +33,8 @@ void testeTraducaoEnderecos(SimuladorMemoriaPaginada &simulador, std::ofstream &
 {
     logfile << "Tradução de Endereços Virtuais para Físicos:\n";
 
-    std::vector<int> enderecosVirtuais = {0, 512, 1024, 1536, 2048};
+    int capacidadeMemoriaVirtual = simulador.getCapacidadeMemoriaVirtual();
+    std::vector<int> enderecosVirtuais = gerarEnderecosVirtuaisAleatorios(5, capacidadeMemoriaVirtual);
 
     for (int endereco : enderecosVirtuais)
     {
@@ -47,7 +49,9 @@ void testeTamanhoPagina(SimuladorMemoriaPaginada &simulador, std::ofstream &logf
 {
     logfile << "Teste de Tamanho de Página Diferente:\n";
 
-    int enderecosVirtuais[] = {0, 512, 1024, 1536, 2048};
+    int capacidadeMemoriaVirtual = simulador.getCapacidadeMemoriaVirtual();
+    std::vector<int> enderecosVirtuais = gerarEnderecosVirtuaisAleatorios(5, capacidadeMemoriaVirtual);
+
     int numEnderecos = sizeof(enderecosVirtuais) / sizeof(enderecosVirtuais[0]);
 
     for (int i = 0; i < numEnderecos; ++i)
@@ -64,7 +68,9 @@ void testeReutilizacaoMolduras(SimuladorMemoriaPaginada &simulador, std::ofstrea
 {
     logfile << "Teste de Reutilização de Molduras:\n";
 
-    int enderecosVirtuais[] = {0, 512, 1024, 1536, 2048};
+    int capacidadeMemoriaVirtual = simulador.getCapacidadeMemoriaVirtual();
+    std::vector<int> enderecosVirtuais = gerarEnderecosVirtuaisAleatorios(5, capacidadeMemoriaVirtual);
+    
     int numEnderecos = sizeof(enderecosVirtuais) / sizeof(enderecosVirtuais[0]);
 
     for (int i = 0; i < numEnderecos; ++i)
@@ -133,6 +139,23 @@ void executarTestes(const std::tuple<int, int, int> &parametros, int testeNumero
 
     logfile.close();
 }
+
+std::vector<int> gerarEnderecosVirtuaisAleatorios (int numEnderecos, int tamanhoMemoriaVirtual)
+{
+    std::vector<int> enderecosVirtuais;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, tamanhoMemoriaVirtual - 1);
+
+    for (int i = 0; i < numEnderecos; ++i)
+    {
+        enderecosVirtuais.push_back(dis(gen));
+    }
+
+    return enderecosVirtuais;
+}
+
 
 int main()
 {
