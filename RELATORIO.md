@@ -57,5 +57,8 @@ Endereço Virtual 1024 -> Endereço Físico ...
 
 ## Considerações Finais
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis vestibulum velit nec nunc auctor, sit amet convallis leo ultricies. Nulla facilisi. Donec id nisl et justo condimentum dapibus. Vivamus et metus eu arcu convallis volutpat. Sed commodo enim id risus ultricies, sit amet pretium leo consequat. Nullam non diam et magna tempor blandit eget ac eros. Sed a nulla convallis, dictum purus nec, consequat justo. Sed eget turpis neque. Cras eget libero a libero viverra lobortis sit amet nec ipsum. Sed ac tincidunt ex. Sed nec tortor urna. Ut dignissim nibh id justo lacinia, nec fermentum dolor gravida. Sed eget lectus ac risus feugiat accumsan. Vivamus vestibulum sit amet metus nec convallis. Sed eu tellus in justo consectetur aliquet. Vivamus ac erat sit amet nulla dapibus rutrum.
+O trabalho foi desafiador, e aprender uma linguagem enquanto desenvolve um problema é enriquecedor. Houve necessidade de buscarmos soluções externas, e tivemos até o último momento da entrega dificuldade em compreender conceitos abordados em aula para colocá-los em prática. Pode parecer trivial, mas é difícil implementar "miss" e "hit" pensando em uma estrutura enxuta de testes. No apanhado geral, somou para a equipe. 
 
+Rodrigo - Essa é a segunda disciplina em que tenho que trabalhar com C++ e estou adorando. Apesar da dificuldade inicial e muitos conceitos ou funcionalidades que acabam saindo em sua maioria de fóruns na internet ou ajuda de ia, estou aprendendo bastante e pretendo me profissionalizar na linguagem para que possa incluir no meu portifólio. Não considero uma das melhores, mas consigo tolerar mais que java, infinitamente mais. 
+
+Muito grato por você dedicar seu precioso tempo para ler. :smile:
