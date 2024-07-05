@@ -48,11 +48,46 @@ A classe `SimuladorMemoriaPaginada` utiliza vetores e operações matemáticas s
 ### Exemplo de Saída
 
 ```
-Tradução de Endereços Virtuais para Físicos:
-Endereço Virtual 0 -> Endereço Físico ...
-Endereço Virtual 512 -> Endereço Físico ...
-Endereço Virtual 1024 -> Endereço Físico ...
+Teste 1:
+Parametros: Memoria Virtual = 16, Memoria Fisica = 8, Tamanho Pagina = 2
+Teste de Capacidade Total de Memória Física:
+Page fault: página 0 não está na memória física.
+A página 0 foi carregada na moldura 0.
+Alocando endereço virtual 0 -> endereço físico 0
+Alocando endereço virtual 1 -> endereço físico 1
+Alocando endereço virtual 2 -> endereço físico 2
+Alocando endereço virtual 3 -> endereço físico 3
+Alocando endereço virtual 4 -> endereço físico 2004
 ...
+Page fault: página 4 não está na memória física.
+A página 4 foi carregada na moldura 1.
+Alocando endereço virtual 16 -> endereço físico 4
+...
+Alocando endereço virtual 63 -> endereço físico 51
+Todos os 64 endereços virtuais alocados com sucesso.
+Teste de Reutilização de Molduras:
+Endereço Virtual 2 -> Endereço Físico 2
+Endereço Virtual 4 -> Endereço Físico 2004
+Endereço Virtual 2 -> Endereço Físico 2
+Endereço Virtual 7 -> Endereço Físico 2007
+Endereço Virtual 5 -> Endereço Físico 2005
+Endereço Virtual 0 -> Endereço Físico 0
+Teste de Tamanho de Página Diferente:
+...
+Endereço Virtual 4 -> Endereço Físico 2004
+Endereço Virtual 13 -> Endereço Físico 2005
+Endereço Virtual 0 -> Endereço Físico 0
+Tradução de Endereços Virtuais para Físicos:
+Endereço Virtual 2 -> Endereço Físico 2
+Endereço Virtual 2 -> Endereço Físico 2
+Endereço Virtual 0 -> Endereço Físico 0
+Endereço Virtual 14 -> Endereço Físico 2006
+Endereço Virtual 0 -> Endereço Físico 0
+Estatísticas:
+Hits: 68
+Misses: 13
+Fim da bateria de teste. 1
+
 ```
 
 ## Considerações Finais

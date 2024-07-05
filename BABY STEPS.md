@@ -17,37 +17,53 @@ Este arquivo define a interface da classe `SimuladorMemoriaPaginada`.
 #include <vector>
 #include <ostream>
 
-class SimuladorMemoriaPaginada {
+class SimuladorMemoriaPaginada
+{
 public:
     SimuladorMemoriaPaginada(int n = 0, int m = 0, int p = 0);
     void inicializar(int tamanhoMemoriaVirtual, int tamanhoMemoriaFisica, int tamanhoPagina);
-    int traduzirEndereco(int enderecoVirtual);
-    void exibirEstado(std::ostream& output);
+    int traduzirEndereco(int enderecoVirtual, std::ofstream &logfile);
+    int getCapacidadeMemoriaFisica() const;
+    int getCapacidadeMemoriaVirtual() const;
+    void exibirEstado(std::ostream &output);
+    void exibirEstatisticas(std::ofstream &logfile) const;
 
 private:
     std::vector<std::vector<int>> tabelaPaginas;
     std::vector<int> memoriaFisica;
     int tamanhoPagina;
-
+    int tamanhoMemoriaVirtual;
+    int hits;
+    int misses;
+    std::vector<std::pair<int, int>> ordemPaginas;
     int encontrarMolduraLivre();
 };
 
-#endif // SIMULADOR_MEMORIA_PAGINADA_H
+#endif 
+
 ```
 
 1. **Construtor e Métodos Públicos**:
    - `SimuladorMemoriaPaginada(int n, int m, int p)`: Construtor que inicializa o simulador.
-   - `void inicializar(int tamanhoMemoriaVirtual, int tamanhoMemoriaFisica, int tamanhoPagina)`: Método para inicializar o simulador com os tamanhos de memória e página.
-   - `int traduzirEndereco(int enderecoVirtual)`: Método para traduzir um endereço virtual para um endereço físico.
-   - `void exibirEstado(std::ostream& output)`: Método para exibir o estado da tabela de páginas e da memória física.
+   - `void inicializar(int tamanhoMemoriaVirtual, int tamanhoMemoriaFisica, int tamanhoPagina)`: Inicializa o simulador com os tamanhos de memória e página.
+   - `int traduzirEndereco(int enderecoVirtual, std::ofstream &logfile)`: Traduz um endereço virtual para um endereço físico, registrando eventos em `logfile`.
+   - `void exibirEstado(std::ostream& output)`: Exibe o estado da tabela de páginas e da memória física.
+   - `int getCapacidadeMemoriaFisica() const;`: Retorna a capacidade total da memória física em bytes.
+   - `int getCapacidadeMemoriaVirtual() const;`: Retorna a capacidade total da memória virtual em bytes.
+   - `void exibirEstatisticas(std::ofstream &logfile) const;`: Exibe estatísticas como hits e misses em `logfile`.
 
 2. **Atributos Privados**:
-   - `std::vector<std::vector<int>> tabelaPaginas`: Tabela de páginas de dois níveis.
+   - `std::vector<std::vector<int>> tabelaPaginas`: Tabela de páginas de dois níveis para mapeamento.
    - `std::vector<int> memoriaFisica`: Vetor representando as molduras da memória física.
    - `int tamanhoPagina`: Tamanho da página em bits.
+   - `int tamanhoMemoriaVirtual;`: Tamanho total da memória virtual em bits.
+   - `int hits;`: Contador de hits durante traduções de endereços.
+   - `int misses;`: Contador de misses durante traduções de endereços.
+   - `std::vector<std::pair<int, int>> ordemPaginas;`: Ordem das páginas acessadas para gerenciamento de substituição.
 
 3. **Método Privado**:
-   - `int encontrarMolduraLivre()`: Método para encontrar uma moldura livre na memória física.
+   - `int encontrarMolduraLivre()`: Encontra e retorna uma moldura livre na memória física para alocação de página.
+
 
 #### Arquivo: `SimuladorMemoriaPaginada.cpp`
 
@@ -57,69 +73,127 @@ Este arquivo implementa os métodos definidos na interface.
 #include "SimuladorMemoriaPaginada.h"
 #include <iostream>
 #include <cmath>
+#include <string>
+#include <cmath>
+#include <fstream>
 
 const int INVALID_ENTRY = -1;
 
-SimuladorMemoriaPaginada::SimuladorMemoriaPaginada(int n, int m, int p) {
+SimuladorMemoriaPaginada::SimuladorMemoriaPaginada(int n, int m, int p)
+{
     inicializar(n, m, p);
 }
 
-void SimuladorMemoriaPaginada::inicializar(int tamanhoMemoriaVirtual, int tamanhoMemoriaFisica, int tamanhoPagina) {
+void SimuladorMemoriaPaginada::inicializar(int tamanhoMemoriaVirtual, int tamanhoMemoriaFisica, int tamanhoPagina)
+{
     this->tamanhoPagina = tamanhoPagina;
+    this->tamanhoMemoriaVirtual = tamanhoMemoriaVirtual;
+    hits = 0;
+    misses = 0;
+    ordemPaginas.clear();
 
-    int numeroPaginasVirtuais = pow(2, tamanhoMemoriaVirtual) / pow(2, tamanhoPagina);
-    int numeroMolduras = pow(2, tamanhoMemoriaFisica) / pow(2, tamanhoPagina);
+    size_t numeroPaginasVirtuais = (1ULL << tamanhoMemoriaVirtual) >> tamanhoPagina;
+    size_t numeroMolduras = (1ULL << tamanhoMemoriaFisica) >> tamanhoPagina;
 
     memoriaFisica.resize(numeroMolduras, 0);
 
-    int entradasNivel1 = numeroPaginasVirtuais / pow(2, tamanhoPagina);
-    tabelaPaginas.resize(entradasNivel1, std::vector<int>(pow(2, tamanhoPagina), INVALID_ENTRY));
+    size_t entradasNivel1 = numeroPaginasVirtuais >> tamanhoPagina;
+    tabelaPaginas.resize(entradasNivel1, std::vector<int>(1 << tamanhoPagina, INVALID_ENTRY));
 }
 
-int SimuladorMemoriaPaginada::traduzirEndereco(int enderecoVirtual) {
-    int pagina = enderecoVirtual / pow(2, tamanhoPagina);
-    int offset = enderecoVirtual % (int)pow(2, tamanhoPagina);
+int SimuladorMemoriaPaginada::traduzirEndereco(int enderecoVirtual, std::ofstream &logfile)
+{
 
-    int entradaNivel1 = pagina / (int)pow(2, tamanhoPagina);
-    int entradaNivel2 = pagina % (int)pow(2, tamanhoPagina);
+    size_t pagina = enderecoVirtual >> tamanhoPagina; 
+    size_t offset = enderecoVirtual & ((1 << tamanhoPagina) - 1);
 
-    if (tabelaPaginas[entradaNivel1][entradaNivel2] == INVALID_ENTRY) {
+    size_t entradaNivel1 = pagina >> tamanhoPagina;   
+    size_t entradaNivel2 = pagina & ((1 << tamanhoPagina) - 1); 
+
+    if (tabelaPaginas[entradaNivel1][entradaNivel2] == INVALID_ENTRY)
+    {
+        misses++;
+        std::cerr << "Page fault!" << std::endl;
+        logfile << "Page fault: página " << pagina << " não está na memória física.\n";
+
         int molduraLivre = encontrarMolduraLivre();
-        if (molduraLivre == -1) {
-            std::cerr << "Erro: Memória física está lotada!" << std::endl;
-            exit(1);
+        if (molduraLivre == -1)
+        {
+            auto paginaAntiga = ordemPaginas.front();
+            ordemPaginas.erase(ordemPaginas.begin());
+
+            size_t entradaAntigaNivel1 = paginaAntiga.first;
+            size_t entradaAntigaNivel2 = paginaAntiga.second;
+            molduraLivre = tabelaPaginas[entradaAntigaNivel1][entradaAntigaNivel2];
+            tabelaPaginas[entradaAntigaNivel1][entradaAntigaNivel2] = INVALID_ENTRY;
+
+            logfile << "Substituição de página: removendo página "
+                    << (entradaAntigaNivel1 << tamanhoPagina) + entradaAntigaNivel2
+                    << " da moldura "
+                    << molduraLivre << ".\n";
         }
 
         tabelaPaginas[entradaNivel1][entradaNivel2] = molduraLivre;
+        ordemPaginas.push_back(std::make_pair(entradaNivel1, entradaNivel2));
+        logfile << "A página " << pagina << " foi carregada na moldura " << molduraLivre << ".\n";
+    }
+    else
+    {
+        hits++; 
     }
 
-    return tabelaPaginas[entradaNivel1][entradaNivel2] * pow(2, tamanhoPagina) + offset;
+    return (tabelaPaginas[entradaNivel1][entradaNivel2] << tamanhoPagina) + offset;
 }
 
-void SimuladorMemoriaPaginada::exibirEstado(std::ostream &output) {
+void SimuladorMemoriaPaginada::exibirEstado(std::ostream &output)
+{
     std::cout << "Conteúdo da Tabela de Páginas:" << std::endl;
-    for (size_t i = 0; i < tabelaPaginas.size(); ++i) {
-        for (size_t j = 0; j < tabelaPaginas[i].size(); ++j) {
-            if (tabelaPaginas[i][j] != INVALID_ENTRY) {
+    for (size_t i = 0; i < tabelaPaginas.size(); ++i)
+    {
+        for (size_t j = 0; j < tabelaPaginas[i].size(); ++j)
+        {
+            if (tabelaPaginas[i][j] != INVALID_ENTRY)
+            {
                 std::cout << "Página " << i * pow(2, tamanhoPagina) + j << " -> Moldura " << tabelaPaginas[i][j] << std::endl;
             }
         }
     }
 
     std::cout << "\nEstado da Memória Física:" << std::endl;
-    for (size_t i = 0; i < memoriaFisica.size(); ++i) {
+    for (size_t i = 0; i < memoriaFisica.size(); ++i)
+    {
         std::cout << "Moldura " << i << ": " << (memoriaFisica[i] == 0 ? "Livre" : "Ocupada") << std::endl;
     }
 }
 
-int SimuladorMemoriaPaginada::encontrarMolduraLivre() {
-    for (int i = 0; i < memoriaFisica.size(); ++i) {
-        if (memoriaFisica[i] == 0) {
-            memoriaFisica[i] = 1; // Marca a moldura como ocupada
-            return i;             // Retorna o índice da moldura livre encontrada
+int SimuladorMemoriaPaginada::encontrarMolduraLivre()
+{
+    for (int i = 0; i < memoriaFisica.size(); ++i)
+    {
+        if (memoriaFisica[i] == 0)
+        {
+            memoriaFisica[i] = 1; 
+            return i; 
         }
     }
-    return -1; // Retorna -1 se não encontrar nenhuma moldura livre
+    return -1; 
+}
+
+int SimuladorMemoriaPaginada::getCapacidadeMemoriaFisica() const
+{
+    return memoriaFisica.size();
+}
+
+int SimuladorMemoriaPaginada::getCapacidadeMemoriaVirtual() const
+{
+    return tamanhoMemoriaVirtual;
+}
+
+void SimuladorMemoriaPaginada::exibirEstatisticas(std::ofstream &logfile) const
+{
+    logfile << "Estatísticas:\n";
+    logfile << "Hits: " << hits << "\n";
+    logfile << "Misses: " << misses << "\n";
 }
 ```
 
@@ -139,138 +213,251 @@ int SimuladorMemoriaPaginada::encontrarMolduraLivre() {
 5. **Busca de Moldura Livre**:
    - `int SimuladorMemoriaPaginada::encontrarMolduraLivre()`: Procura uma moldura livre na memória física e a marca como ocupada.
 
+6. **Obtem a Capacidade de Memória Física**:
+   - `int SimuladorMemoriaPaginada::getCapacidadeMemoriaFisica() const`: Obtém o valor da memória física total.
+
+7. **Obtem a Capacidade de Memória Virtual**:
+   - `int SimuladorMemoriaPaginada::getCapacidadeMemoriaVirtual() const`: Obtém o valor da memória virtual total.
+
+8. **Exibe Dados sobre Hit e Miss**:
+   - `void SimuladorMemoriaPaginada::exibirEstatisticas(std::ofstream &logfile) const`: Exibe os resultados de contadores de hits e misses da bateria de testes.
+
 ### Casos de Teste
 
-#### Arquivo: `teste_capacidade_memoria.cpp`
+#### Arquivo: `Testador.cpp`
 
-Este arquivo testa a capacidade total da memória física.
+Este arquivo implementa uma bateria de testes para todos os métodos da classe principal.
 
 ```cpp
+#include "SimuladorMemoriaPaginada.h"
+#include "Testador.h"
 #include <iostream>
 #include <fstream>
-#include "SimuladorMemoriaPaginada.h"
+#include <string>
+#include <vector>
+#include <tuple>
+#include <random>
 
-void aguardarTecla() {
-    std::cout << "Pressione qualquer tecla para sair...";
-    std::cin.ignore(); // Ignorar o próximo caractere no buffer (que seria o Enter)
-    std::cin.get();    // Esperar até que o usuário pressione Enter
-}
 
-int main() {
-    // Configuração inicial do simulador
-    SimuladorMemoriaPaginada simulador;
-    simulador.inicializar(12, 14, 4); // Tamanho da memória virtual = 12 bits, física = 14 bits, página = 4 bits
+// Função para ler parâmetros do arquivo config.txt
+bool lerParametrosDoArquivo(const std::string &nomeArquivo, std::vector<std::tuple<int, int, int>> &parametros)
+{
 
-    std::cout << "Teste de Capacidade Total de Memória Física:\n";
-
-    // Preencher gradualmente a memória física até a capacidade total
-    int capacidadeMemoriaFisica = 1 << 14; // Capacidade total da memória física (14 bits)
-    std::ofstream logfile("log_capacidade_memoria.txt");
-    if (!logfile.is_open()) {
-        std::cerr << "Erro ao abrir arquivo de log!" << std::endl;
-        return 1;
+    std::ifstream arquivo(nomeArquivo.c_str());
+    if (!arquivo.is_open())
+    {
+        std::cerr << "Erro ao abrir o arquivo " << nomeArquivo << "!\n";
+        return false;
     }
 
+    int tamanhoMemoriaVirtual, tamanhoMemoriaFisica, tamanhoPagina;
+    while (arquivo >> tamanhoMemoriaVirtual >> tamanhoMemoriaFisica >> tamanhoPagina) // enquanto houver parametros para ler
+    {
+        parametros.emplace_back(tamanhoMemoriaVirtual, tamanhoMemoriaFisica, tamanhoPagina); // adiciono a tupla com os parametros na lista
+    }
+
+    arquivo.close();
+    return true;
+}
+
+void testeTraducaoEnderecos(SimuladorMemoriaPaginada &simulador, std::ofstream &logfile)
+{
+    logfile << "Tradução de Endereços Virtuais para Físicos:\n";
+
+    int capacidadeMemoriaVirtual = simulador.getCapacidadeMemoriaVirtual();
+    std::vector<int> enderecosVirtuais = gerarEnderecosVirtuaisAleatorios(5, capacidadeMemoriaVirtual);
+
+    for (int endereco : enderecosVirtuais)
+    {
+        int enderecoFisico = simulador.traduzirEndereco(endereco, logfile);
+        logfile << "Endereço Virtual " << endereco << " -> Endereço Físico " << enderecoFisico << "\n";
+    }
+
+    simulador.exibirEstado(logfile);
+}
+
+void testeTamanhoPagina(SimuladorMemoriaPaginada &simulador, std::ofstream &logfile)
+{
+    logfile << "Teste de Tamanho de Página Diferente:\n";
+
+    int capacidadeMemoriaVirtual = simulador.getCapacidadeMemoriaVirtual();
+    std::vector<int> enderecosVirtuais = gerarEnderecosVirtuaisAleatorios(5, capacidadeMemoriaVirtual);
+
+    int numEnderecos = sizeof(enderecosVirtuais) / sizeof(enderecosVirtuais[0]);
+
+    for (int i = 0; i < numEnderecos; ++i)
+    {
+        int enderecoVirtual = enderecosVirtuais[i];
+        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual, logfile);
+        logfile << "Endereço Virtual " << enderecoVirtual << " -> Endereço Físico " << enderecoFisico << "\n";
+    }
+
+    simulador.exibirEstado(logfile);
+}
+
+void testeReutilizacaoMolduras(SimuladorMemoriaPaginada &simulador, std::ofstream &logfile)
+{
+    logfile << "Teste de Reutilização de Molduras:\n";
+
+    int capacidadeMemoriaVirtual = simulador.getCapacidadeMemoriaVirtual();
+    std::vector<int> enderecosVirtuais = gerarEnderecosVirtuaisAleatorios(5, capacidadeMemoriaVirtual);
+    
+    int numEnderecos = sizeof(enderecosVirtuais) / sizeof(enderecosVirtuais[0]);
+
+    for (int i = 0; i < numEnderecos; ++i)
+    {
+        int enderecoVirtual = enderecosVirtuais[i];
+        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual, logfile);
+        logfile << "Endereço Virtual " << enderecoVirtual << " -> Endereço Físico " << enderecoFisico << "\n";
+    }
+
+    simulador.exibirEstado(logfile);
+}
+
+void testeCapacidadeMemoria(SimuladorMemoriaPaginada &simulador, std::ofstream &logfile)
+{
+    int capacidadeMemoriaFisica = simulador.getCapacidadeMemoriaFisica();
     bool falha = false;
 
-    for (int enderecoVirtual = 0; enderecoVirtual < capacidadeMemoriaFisica; ++enderecoVirtual) {
-        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual);
+    logfile << "Teste de Capacidade Total de Memória Física:\n";
 
-        if (enderecoFisico == -1) {
-            std::cout << "Falha ao alocar moldura para o endereço virtual " << enderecoVirtual << ". Capacidade excedida.\n";
+    for (int enderecoVirtual = 0; enderecoVirtual < capacidadeMemoriaFisica; ++enderecoVirtual)
+    {
+        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual, logfile);
+
+        if (enderecoFisico == -1)
+        {
             logfile << "Falha ao alocar moldura para o endereço virtual " << enderecoVirtual << ". Capacidade excedida.\n";
             falha = true;
             break;
         }
 
-        // Simulação de preenchimento da memória física
-        if (enderecoVirtual % 1000 == 
-
-0) {
-            std::cout << "Endereço virtual " << enderecoVirtual << " mapeado para endereço físico " << enderecoFisico << ".\n";
-            logfile << "Endereço virtual " << enderecoVirtual << " mapeado para endereço físico " << enderecoFisico << ".\n";
-        }
+        logfile << "Alocando endereço virtual " << enderecoVirtual << " -> endereço físico " << enderecoFisico << "\n";
     }
 
-    if (!falha) {
-        std::cout << "Memória física preenchida até a capacidade total com sucesso.\n";
-        logfile << "Memória física preenchida até a capacidade total com sucesso.\n";
+    if (!falha)
+    {
+        logfile << "Todos os " << capacidadeMemoriaFisica << " endereços virtuais alocados com sucesso.\n";
     }
 
-    simulador.exibirEstado(std::cout);
     simulador.exibirEstado(logfile);
+}
+
+void executarTestes(const std::tuple<int, int, int> &parametros, int testeNumero)
+{
+    int tamanhoMemoriaVirtual = std::get<0>(parametros);
+    int tamanhoMemoriaFisica = std::get<1>(parametros);
+    int tamanhoPagina = std::get<2>(parametros);
+
+    std::ofstream logfile("log_" + std::to_string(testeNumero) + ".txt");
+    if (!logfile.is_open())
+    {
+        std::cerr << "Erro ao abrir arquivo log.txt!\n";
+        return;
+    }
+    logfile << "Teste " << testeNumero << ":\n";
+    logfile << "Parametros: Memoria Virtual = " << tamanhoMemoriaVirtual
+            << ", Memoria Fisica = " << tamanhoMemoriaFisica
+            << ", Tamanho Pagina = " << tamanhoPagina << "\n";
+
+    SimuladorMemoriaPaginada simulador;
+    simulador.inicializar(tamanhoMemoriaVirtual, tamanhoMemoriaFisica, tamanhoPagina);
+
+    testeCapacidadeMemoria(simulador, logfile);
+    testeReutilizacaoMolduras(simulador, logfile);
+    testeTamanhoPagina(simulador, logfile);
+    testeTraducaoEnderecos(simulador, logfile);
+    simulador.exibirEstatisticas(logfile);
 
     logfile.close();
-
-    aguardarTecla();
-
-    return 0;
-}
-```
-
-1. **Função `aguardarTecla`**:
-   - `void aguardarTecla()`: Espera até que o usuário pressione Enter para sair.
-
-2. **Função `main`**:
-   - **Configuração**: Inicializa o simulador com tamanhos de memória virtual, física e de página.
-   - **Teste de Capacidade**: Preenche gradualmente a memória física até a capacidade total, registrando o mapeamento de endereços virtuais para físicos em um arquivo de log.
-   - **Exibição de Estado**: Exibe o estado final do simulador no console e no arquivo de log.
-
-#### Arquivo: `teste_traducao_enderecos.cpp`
-
-Este arquivo testa a tradução de endereços virtuais para endereços físicos.
-
-```cpp
-#include <iostream>
-#include <fstream>
-#include "SimuladorMemoriaPaginada.h"
-
-void aguardarTecla() {
-    std::cout << "Pressione qualquer tecla para sair...";
-    std::cin.ignore(); // Ignorar o próximo caractere no buffer (que seria o Enter)
-    std::cin.get();    // Esperar até que o usuário pressione Enter
 }
 
-int main() {
-    // Configuração inicial do simulador
-    SimuladorMemoriaPaginada simulador;
-    simulador.inicializar(12, 14, 4); // Tamanho da memória virtual = 12 bits, física = 14 bits, página = 4 bits
+std::vector<int> gerarEnderecosVirtuaisAleatorios (int numEnderecos, int tamanhoMemoriaVirtual)
+{
+    std::vector<int> enderecosVirtuais;
 
-    std::cout << "Teste de Tradução de Endereços:\n";
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, tamanhoMemoriaVirtual - 1);
 
-    // Sequência de endereços virtuais para testar
-    int enderecosVirtuais[] = {0x001, 0x010, 0x100, 0x200, 0x0100, 0x0200, 0x0300, 0x0400};
-    std::ofstream logfile("log_traducao_enderecos.txt");
-    if (!logfile.is_open()) {
-        std::cerr << "Erro ao abrir arquivo de log!" << std::endl;
+    for (int i = 0; i < numEnderecos; ++i)
+    {
+        enderecosVirtuais.push_back(dis(gen));
+    }
+
+    return enderecosVirtuais;
+}
+
+
+int main()
+{
+    const std::string nomeArquivo = "config.txt";
+
+    std::vector<std::tuple<int, int, int>> parametros;
+    if (!lerParametrosDoArquivo(nomeArquivo, parametros))
+    {
         return 1;
     }
 
-    for (int enderecoVirtual : enderecosVirtuais) {
-        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual);
-        std::cout << "Endereço virtual " << enderecoVirtual << " mapeado para endereço físico " << enderecoFisico << ".\n";
-        logfile << "Endereço virtual " << enderecoVirtual << " mapeado para endereço físico " << enderecoFisico << ".\n";
+    int testeNumero = 1;
+
+    for (const auto &[tamanhoMemoriaVirtual, tamanhoMemoriaFisica, tamanhoPagina] : parametros)
+    {
+        
+        std::ofstream logfile("log_" + std::to_string(testeNumero) + ".txt");
+        if (!logfile.is_open())
+        {
+            std::cerr << "Erro ao abrir arquivo log.txt!\n";
+            continue;
+        }
+        logfile << "Teste " << testeNumero << ":\n";
+        logfile << "Parametros: Memoria Virtual = " << tamanhoMemoriaVirtual
+                << ", Memoria Fisica = " << tamanhoMemoriaFisica
+                << ", Tamanho Pagina = " << tamanhoPagina << "\n";
+
+        SimuladorMemoriaPaginada simulador;
+        simulador.inicializar(tamanhoMemoriaVirtual, tamanhoMemoriaFisica, tamanhoPagina);
+
+        testeCapacidadeMemoria(simulador, logfile);
+        testeReutilizacaoMolduras(simulador, logfile);
+        testeTamanhoPagina(simulador, logfile);
+        testeTraducaoEnderecos(simulador, logfile);
+        simulador.exibirEstatisticas(logfile);
+        
+        logfile << "Fim da bateria de teste. " << testeNumero << "\n";
+        logfile.close();
+        testeNumero++;
     }
 
-    simulador.exibirEstado(std::cout);
-    simulador.exibirEstado(logfile);
-
-    logfile.close();
-
-    aguardarTecla();
+    std::cout << "Todos os testes foram executados. Verifique os logs para mais detalhes." << std::endl;
 
     return 0;
 }
 ```
+1. **Teste de Tradução de Endereços Virtuais para Físicos**:
+   - `void testeTraducaoEnderecos(SimuladorMemoriaPaginada &simulador, std::ofstream &logfile)`: Realiza a tradução de endereços virtuais para físicos e registra os resultados no arquivo de log.
 
-1. **Função `aguardarTecla`**:
-   - `void aguardarTecla()`: Espera até que o usuário pressione Enter para sair.
+2. **Teste de Tamanho de Página Diferente**:
+   - `void testeTamanhoPagina(SimuladorMemoriaPaginada &simulador, std::ofstream &logfile)`: Testa a tradução de endereços virtuais com diferentes tamanhos de página e registra os resultados no arquivo de log.
 
-2. **Função `main`**:
-   - **Configuração**: Inicializa o simulador com tamanhos de memória virtual, física e de página.
-   - **Teste de Tradução**: Testa a tradução de uma sequência de endereços virtuais para endereços físicos, registrando os resultados em um arquivo de log.
-   - **Exibição de Estado**: Exibe o estado final do simulador no console e no arquivo de log.
+3. **Teste de Reutilização de Molduras**:
+   - `void testeReutilizacaoMolduras(SimuladorMem
 
+oriaPaginada &simulador, std::ofstream &logfile)`: Testa a reutilização de molduras na memória física e registra os resultados no arquivo de log.
+
+4. **Teste de Capacidade Total de Memória Física**:
+   - `void testeCapacidadeMemoria(SimuladorMemoriaPaginada &simulador, std::ofstream &logfile)`: Testa a capacidade total da memória física para alocação de endereços virtuais e registra os resultados no arquivo de log.
+
+5. **Executar Testes**:
+   - `void executarTestes(const std::tuple<int, int, int> &parametros, int testeNumero)`: Executa uma série de testes com base nos parâmetros fornecidos e gera um arquivo de log para cada teste realizado.
+
+6. **Gerar Endereços Virtuais Aleatórios**:
+   - `std::vector<int> gerarEnderecosVirtuaisAleatorios(int numEnderecos, int tamanhoMemoriaVirtual)`: Gera um vetor de endereços virtuais aleatórios dentro do tamanho da memória virtual especificada.
+
+7. **Função Principal**:
+   - `int main()`: Função principal que coordena a leitura dos parâmetros do arquivo de configuração, a execução dos testes para cada conjunto de parâmetros e a geração de arquivos de log correspondentes.
+
+Este código implementa uma estrutura robusta para testar a funcionalidade da classe `SimuladorMemoriaPaginada` em diferentes cenários configuráveis através do arquivo `config.txt`.
 
 ### Makefile
 
@@ -279,46 +466,59 @@ O `Makefile` é usado para compilar os arquivos de origem e gerar os executávei
 #### Arquivo: `Makefile`
 
 ```Makefile
-CC = g++
-CFLAGS = -Wall -std=c++11
+# Nome dos executáveis
+EXEC_TESTADOR = Testador
 
-all: teste_capacidade_memoria teste_traducao_enderecos
+# Compilador e opções
+CXX = g++
+CXXFLAGS = -std=c++17
 
-teste_capacidade_memoria: teste_capacidade_memoria.o SimuladorMemoriaPaginada.o
-	$(CC) $(CFLAGS) -o teste_capacidade_memoria teste_capacidade_memoria.o SimuladorMemoriaPaginada.o
+# Diretório dos arquivos fonte e cabeçalho
+SRC_DIR = src
+INC_DIR = include
 
-teste_traducao_enderecos: teste_traducao_enderecos.o SimuladorMemoriaPaginada.o
-	$(CC) $(CFLAGS) -o teste_traducao_enderecos teste_traducao_enderecos.o SimuladorMemoriaPaginada.o
+# Arquivos fonte
+SRC = $(SRC_DIR)/SimuladorMemoriaPaginada.cpp \
+	$(SRC_DIR)/Testador.cpp
 
-SimuladorMemoriaPaginada.o: SimuladorMemoriaPaginada.cpp SimuladorMemoriaPaginada.h
-	$(CC) $(CFLAGS) -c SimuladorMemoriaPaginada.cpp
+# Objetos gerados
+OBJS = $(SRC_DIR)/SimuladorMemoriaPaginada.o \
+	$(SRC_DIR)/Testador.o
 
-teste_capacidade_memoria.o: teste_capacidade_memoria.cpp SimuladorMemoriaPaginada.h
-	$(CC) $(CFLAGS) -c teste_capacidade_memoria.cpp
+# Todos os alvos
+all: $(EXEC_TESTADOR)
 
-teste_traducao_enderecos.o: teste_traducao_enderecos.cpp SimuladorMemoriaPaginada.h
-	$(CC) $(CFLAGS) -c teste_traducao_enderecos.cpp
+# Regras de compilação para os executáveis
+$(EXEC_TESTADOR): $(SRC_DIR)/$(EXEC_TESTADOR).o $(SRC_DIR)/SimuladorMemoriaPaginada.o
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
+# Regra geral para compilação de objetos
+$(SRC_DIR)/%.o: $(SRC_DIR)/%.cpp $(INC_DIR)/SimuladorMemoriaPaginada.h
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+# Limpar arquivos intermediários e executáveis
 clean:
-	rm -f *.o teste_capacidade_memoria teste_traducao_enderecos
+	rm -f $(SRC_DIR)/*.o
+	rm -f $(OBJS)
+	rm -f $(EXEC_TESTADOR)
+
+# Marca os alvos 'all' e 'clean' como não arquivos
+.PHONY: all clean
 ```
 
 1. **Variáveis**:
    - `CC = g++`: Define o compilador C++ a ser usado.
-   - `CFLAGS = -Wall -std=c++11`: Define as flags de compilação (habilitar todos os avisos e usar a versão C++11).
+   - `CFLAGS = -Wall -std=c++17`: Define as flags de compilação (habilitar todos os avisos e usar a versão C++17).
 
 2. **Alvos**:
-   - `all`: Alvo padrão que compila os testes `teste_capacidade_memoria` e `teste_traducao_enderecos`.
-   - `teste_capacidade_memoria`: Compila e liga os arquivos objeto necessários para o teste de capacidade de memória.
-   - `teste_traducao_enderecos`: Compila e liga os arquivos objeto necessários para o teste de tradução de endereços.
+   - `all`: Alvo padrão que compila o programa de testes `Testador`.
 
 3. **Compilação dos Arquivos Objeto**:
    - `SimuladorMemoriaPaginada.o`: Compila `SimuladorMemoriaPaginada.cpp`.
-   - `teste_capacidade_memoria.o`: Compila `teste_capacidade_memoria.cpp`.
-   - `teste_traducao_enderecos.o`: Compila `teste_traducao_enderecos.cpp`.
+   - `Testador.o`: Compila `Testador.cpp`.
 
 4. **Limpeza**:
-   - `clean`: Remove todos os arquivos objeto e executáveis gerados.
+   - `clean`: Remove todos os arquivos objeto e executáveis gerados. Na verdade não remove, mas fica ali até descobrir como fazer funcionar.
 
 ### BUGS
 
@@ -333,10 +533,19 @@ Alguém poderia testar no Linux, pra sabermos se o terminal vai aceitar de boa o
 
 Caso alguém se sinta confortável, refatora por gentileza este arquivo e os demais para EN-US pra ficar bonitinho no Github. 
 
-### UPDATE
+### UPDATE 1
 
 Foram alteradas as configurações do arquivo "Testador" para encapsular toda parte de testes e gerar um arquivo de log para cada teste realizado. 
 Com ele será possível ajustar os parâmetros no arquivo de teste "config.txt" indicando em inteiros os valores para "tamanhoMemoriaVirtual", "tamanhoMemoriaFisica" e "tamanhoPagina". 
 Ao executar o testador, ele exibe o progresso no terminal e copia os dados da execução para o log correspondente. Assim torna-se possível revisitar os dados persistidos. 
 Detalhes sobre a execução estão descritos no "README". 
 Não será mais necessário utilizar os arquivos de teste individuais. Caso necessite, poderá usá-los fazendo pequenos ajustes, como incluir função para leitura do arquivo de configuração (exemplo de tentativa no "teste_capacidde_memoria").
+
+### UPDATE 2
+
+- alterada forma de cálculo dos endereços e molduras - estava usando potência que gera um double, e por algum motivo estava alocando memória física negativa. Com as alterações para deslocamento resolveu a maioria dos problemas. Próxima etapa tentar usar "long long" para as variáveis. 
+- removidos do makefile os programas que não foram mais utilizados para testes e movidos para "old".
+- alterada forma de executar os testes: antes era uma lista de endereços fixa; agora uma lista gerada randomicamente. 
+- tentativa de configuração para adicionar tratamento de page fault e registro no log.
+- tentativa de configuração para registrar hits e miss.
+- ajustes de perfumaria no baby steps e relatório.

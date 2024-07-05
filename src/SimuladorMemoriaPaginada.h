@@ -23,9 +23,7 @@ private:
     int hits;
     int misses;
     std::vector<std::pair<int, int>> ordemPaginas; // par entre nivel1 e nivel2
-
-
     int encontrarMolduraLivre();
 };
 
-#endif // SIMULADOR_MEMORIA_PAGINADA_H
+#endif 
