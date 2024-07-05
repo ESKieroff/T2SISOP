@@ -9,7 +9,7 @@ class SimuladorMemoriaPaginada
 public:
     SimuladorMemoriaPaginada(int n = 0, int m = 0, int p = 0);
     void inicializar(int tamanhoMemoriaVirtual, int tamanhoMemoriaFisica, int tamanhoPagina);
-    int traduzirEndereco(int enderecoVirtual);
+    int traduzirEndereco(int enderecoVirtual, std::ofstream &logfile);
     int getCapacidadeMemoriaFisica() const;
     int getCapacidadeMemoriaVirtual() const;
     void exibirEstado(std::ostream &output);
@@ -22,6 +22,7 @@ private:
     int tamanhoMemoriaVirtual;
     int hits;
     int misses;
+    std::vector<std::pair<int, int>> ordemPaginas; // par entre nivel1 e nivel2
 
 
     int encontrarMolduraLivre();

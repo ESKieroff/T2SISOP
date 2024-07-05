@@ -5,7 +5,6 @@
 #include <cmath>
 #include <fstream>
 
-
 const int INVALID_ENTRY = -1;
 
 SimuladorMemoriaPaginada::SimuladorMemoriaPaginada(int n, int m, int p)
@@ -19,17 +18,18 @@ void SimuladorMemoriaPaginada::inicializar(int tamanhoMemoriaVirtual, int tamanh
     this->tamanhoMemoriaVirtual = tamanhoMemoriaVirtual;
     hits = 0;
     misses = 0;
+    ordemPaginas.clear();
 
     int numeroPaginasVirtuais = pow(2, tamanhoMemoriaVirtual) / pow(2, tamanhoPagina);
     int numeroMolduras = pow(2, tamanhoMemoriaFisica) / pow(2, tamanhoPagina);
 
-    memoriaFisica.resize(numeroMolduras, 0); 
+    memoriaFisica.resize(numeroMolduras, 0);
 
     int entradasNivel1 = numeroPaginasVirtuais / pow(2, tamanhoPagina);
     tabelaPaginas.resize(entradasNivel1, std::vector<int>(pow(2, tamanhoPagina), INVALID_ENTRY));
 }
 
-int SimuladorMemoriaPaginada::traduzirEndereco(int enderecoVirtual)
+int SimuladorMemoriaPaginada::traduzirEndereco(int enderecoVirtual, std::ofstream &logfile)
 {
     int pagina = enderecoVirtual / pow(2, tamanhoPagina);
     int offset = enderecoVirtual % (int)pow(2, tamanhoPagina);
@@ -39,20 +39,35 @@ int SimuladorMemoriaPaginada::traduzirEndereco(int enderecoVirtual)
 
     if (tabelaPaginas[entradaNivel1][entradaNivel2] == INVALID_ENTRY)
     {
+        misses++;
+        std::cerr << "Page fault!" << std::endl;
+        logfile << "Page fault: página " << pagina << " não está na memória física.\n";
+
         int molduraLivre = encontrarMolduraLivre();
         if (molduraLivre == -1)
         {
-            misses++;
-            std::cerr << "Erro: Memória física está lotada!" << std::endl;
-            exit(1);
+            auto paginaAntiga = ordemPaginas.front();
+            ordemPaginas.erase(ordemPaginas.begin());
+
+            int entradaAntigaNivel1 = paginaAntiga.first;
+            int entradaAntigaNivel2 = paginaAntiga.second;
+            molduraLivre = tabelaPaginas[entradaAntigaNivel1][entradaAntigaNivel2];
+            tabelaPaginas[entradaAntigaNivel1][entradaAntigaNivel2] = INVALID_ENTRY;
+
+            logfile << "Substituição de página: removendo página "
+                    << entradaAntigaNivel1 * pow(2, tamanhoPagina) + entradaAntigaNivel2
+                    << " da moldura "
+                    << molduraLivre << ".\n";
         }
 
         tabelaPaginas[entradaNivel1][entradaNivel2] = molduraLivre;
+        ordemPaginas.push_back(std::make_pair(entradaNivel1, entradaNivel2));
+        logfile << "A página " << pagina << " foi carregada na moldura " << molduraLivre << ".\n";
     }
     else
     {
         hits++; // a página já está mapeada na memória física
-    }   
+    }
 
     return tabelaPaginas[entradaNivel1][entradaNivel2] * pow(2, tamanhoPagina) + offset;
 }
@@ -93,7 +108,7 @@ int SimuladorMemoriaPaginada::encontrarMolduraLivre()
 
 int SimuladorMemoriaPaginada::getCapacidadeMemoriaFisica() const
 {
-    return memoriaFisica.size();    
+    return memoriaFisica.size();
 }
 
 int SimuladorMemoriaPaginada::getCapacidadeMemoriaVirtual() const

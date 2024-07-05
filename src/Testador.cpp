@@ -38,7 +38,7 @@ void testeTraducaoEnderecos(SimuladorMemoriaPaginada &simulador, std::ofstream &
 
     for (int endereco : enderecosVirtuais)
     {
-        int enderecoFisico = simulador.traduzirEndereco(endereco);
+        int enderecoFisico = simulador.traduzirEndereco(endereco, logfile);
         logfile << "Endereço Virtual " << endereco << " -> Endereço Físico " << enderecoFisico << "\n";
     }
 
@@ -57,7 +57,7 @@ void testeTamanhoPagina(SimuladorMemoriaPaginada &simulador, std::ofstream &logf
     for (int i = 0; i < numEnderecos; ++i)
     {
         int enderecoVirtual = enderecosVirtuais[i];
-        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual);
+        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual, logfile);
         logfile << "Endereço Virtual " << enderecoVirtual << " -> Endereço Físico " << enderecoFisico << "\n";
     }
 
@@ -76,7 +76,7 @@ void testeReutilizacaoMolduras(SimuladorMemoriaPaginada &simulador, std::ofstrea
     for (int i = 0; i < numEnderecos; ++i)
     {
         int enderecoVirtual = enderecosVirtuais[i];
-        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual);
+        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual, logfile);
         logfile << "Endereço Virtual " << enderecoVirtual << " -> Endereço Físico " << enderecoFisico << "\n";
     }
 
@@ -92,7 +92,7 @@ void testeCapacidadeMemoria(SimuladorMemoriaPaginada &simulador, std::ofstream &
 
     for (int enderecoVirtual = 0; enderecoVirtual < capacidadeMemoriaFisica; ++enderecoVirtual)
     {
-        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual);
+        int enderecoFisico = simulador.traduzirEndereco(enderecoVirtual, logfile);
 
         if (enderecoFisico == -1)
         {
