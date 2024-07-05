@@ -20,22 +20,24 @@ void SimuladorMemoriaPaginada::inicializar(int tamanhoMemoriaVirtual, int tamanh
     misses = 0;
     ordemPaginas.clear();
 
-    int numeroPaginasVirtuais = pow(2, tamanhoMemoriaVirtual) / pow(2, tamanhoPagina);
-    int numeroMolduras = pow(2, tamanhoMemoriaFisica) / pow(2, tamanhoPagina);
+    size_t numeroPaginasVirtuais = (1ULL << tamanhoMemoriaVirtual) >> tamanhoPagina;
+    size_t numeroMolduras = (1ULL << tamanhoMemoriaFisica) >> tamanhoPagina;
 
     memoriaFisica.resize(numeroMolduras, 0);
 
-    int entradasNivel1 = numeroPaginasVirtuais / pow(2, tamanhoPagina);
-    tabelaPaginas.resize(entradasNivel1, std::vector<int>(pow(2, tamanhoPagina), INVALID_ENTRY));
+    size_t entradasNivel1 = numeroPaginasVirtuais >> tamanhoPagina;
+    tabelaPaginas.resize(entradasNivel1, std::vector<int>(1 << tamanhoPagina, INVALID_ENTRY));
 }
 
 int SimuladorMemoriaPaginada::traduzirEndereco(int enderecoVirtual, std::ofstream &logfile)
 {
-    int pagina = enderecoVirtual / pow(2, tamanhoPagina);
-    int offset = enderecoVirtual % (int)pow(2, tamanhoPagina);
+    // Calculando a página e o offset
+    size_t pagina = enderecoVirtual >> tamanhoPagina; 
+    size_t offset = enderecoVirtual & ((1 << tamanhoPagina) - 1);
 
-    int entradaNivel1 = pagina / (int)pow(2, tamanhoPagina);
-    int entradaNivel2 = pagina % (int)pow(2, tamanhoPagina);
+    // Calculando as entradas na tabela de páginas
+    size_t entradaNivel1 = pagina >> tamanhoPagina;   
+    size_t entradaNivel2 = pagina & ((1 << tamanhoPagina) - 1); 
 
     if (tabelaPaginas[entradaNivel1][entradaNivel2] == INVALID_ENTRY)
     {
@@ -49,13 +51,13 @@ int SimuladorMemoriaPaginada::traduzirEndereco(int enderecoVirtual, std::ofstrea
             auto paginaAntiga = ordemPaginas.front();
             ordemPaginas.erase(ordemPaginas.begin());
 
-            int entradaAntigaNivel1 = paginaAntiga.first;
-            int entradaAntigaNivel2 = paginaAntiga.second;
+            size_t entradaAntigaNivel1 = paginaAntiga.first;
+            size_t entradaAntigaNivel2 = paginaAntiga.second;
             molduraLivre = tabelaPaginas[entradaAntigaNivel1][entradaAntigaNivel2];
             tabelaPaginas[entradaAntigaNivel1][entradaAntigaNivel2] = INVALID_ENTRY;
 
             logfile << "Substituição de página: removendo página "
-                    << entradaAntigaNivel1 * pow(2, tamanhoPagina) + entradaAntigaNivel2
+                    << (entradaAntigaNivel1 << tamanhoPagina) + entradaAntigaNivel2
                     << " da moldura "
                     << molduraLivre << ".\n";
         }
@@ -69,7 +71,7 @@ int SimuladorMemoriaPaginada::traduzirEndereco(int enderecoVirtual, std::ofstrea
         hits++; // a página já está mapeada na memória física
     }
 
-    return tabelaPaginas[entradaNivel1][entradaNivel2] * pow(2, tamanhoPagina) + offset;
+    return (tabelaPaginas[entradaNivel1][entradaNivel2] << tamanhoPagina) + offset;
 }
 
 void SimuladorMemoriaPaginada::exibirEstado(std::ostream &output)

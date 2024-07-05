@@ -1,0 +1,118 @@
+Teste 1:
+Parametros: Memoria Virtual = 16, Memoria Fisica = 8, Tamanho Pagina = 2
+Teste de Capacidade Total de Memória Física:
+Page fault: página 0 não está na memória física.
+A página 0 foi carregada na moldura 0.
+Alocando endereço virtual 0 -> endereço físico 0
+Alocando endereço virtual 1 -> endereço físico 1
+Alocando endereço virtual 2 -> endereço físico 2
+Alocando endereço virtual 3 -> endereço físico 3
+Alocando endereço virtual 4 -> endereço físico 2004
+Alocando endereço virtual 5 -> endereço físico 2005
+Alocando endereço virtual 6 -> endereço físico 2006
+Alocando endereço virtual 7 -> endereço físico 2007
+Alocando endereço virtual 8 -> endereço físico -1715731136
+Alocando endereço virtual 9 -> endereço físico -1715731135
+Alocando endereço virtual 10 -> endereço físico -1715731134
+Alocando endereço virtual 11 -> endereço físico -1715731133
+Alocando endereço virtual 12 -> endereço físico 2004
+Alocando endereço virtual 13 -> endereço físico 2005
+Alocando endereço virtual 14 -> endereço físico 2006
+Alocando endereço virtual 15 -> endereço físico 2007
+Page fault: página 4 não está na memória física.
+A página 4 foi carregada na moldura 1.
+Alocando endereço virtual 16 -> endereço físico 4
+Alocando endereço virtual 17 -> endereço físico 5
+Alocando endereço virtual 18 -> endereço físico 6
+Alocando endereço virtual 19 -> endereço físico 7
+Page fault: página 5 não está na memória física.
+A página 5 foi carregada na moldura 2.
+Alocando endereço virtual 20 -> endereço físico 8
+Alocando endereço virtual 21 -> endereço físico 9
+Alocando endereço virtual 22 -> endereço físico 10
+Alocando endereço virtual 23 -> endereço físico 11
+Page fault: página 6 não está na memória física.
+A página 6 foi carregada na moldura 3.
+Alocando endereço virtual 24 -> endereço físico 12
+Alocando endereço virtual 25 -> endereço físico 13
+Alocando endereço virtual 26 -> endereço físico 14
+Alocando endereço virtual 27 -> endereço físico 15
+Page fault: página 7 não está na memória física.
+A página 7 foi carregada na moldura 4.
+Alocando endereço virtual 28 -> endereço físico 16
+Alocando endereço virtual 29 -> endereço físico 17
+Alocando endereço virtual 30 -> endereço físico 18
+Alocando endereço virtual 31 -> endereço físico 19
+Page fault: página 8 não está na memória física.
+A página 8 foi carregada na moldura 5.
+Alocando endereço virtual 32 -> endereço físico 20
+Alocando endereço virtual 33 -> endereço físico 21
+Alocando endereço virtual 34 -> endereço físico 22
+Alocando endereço virtual 35 -> endereço físico 23
+Page fault: página 9 não está na memória física.
+A página 9 foi carregada na moldura 6.
+Alocando endereço virtual 36 -> endereço físico 24
+Alocando endereço virtual 37 -> endereço físico 25
+Alocando endereço virtual 38 -> endereço físico 26
+Alocando endereço virtual 39 -> endereço físico 27
+Page fault: página 10 não está na memória física.
+A página 10 foi carregada na moldura 7.
+Alocando endereço virtual 40 -> endereço físico 28
+Alocando endereço virtual 41 -> endereço físico 29
+Alocando endereço virtual 42 -> endereço físico 30
+Alocando endereço virtual 43 -> endereço físico 31
+Page fault: página 11 não está na memória física.
+A página 11 foi carregada na moldura 8.
+Alocando endereço virtual 44 -> endereço físico 32
+Alocando endereço virtual 45 -> endereço físico 33
+Alocando endereço virtual 46 -> endereço físico 34
+Alocando endereço virtual 47 -> endereço físico 35
+Page fault: página 12 não está na memória física.
+A página 12 foi carregada na moldura 9.
+Alocando endereço virtual 48 -> endereço físico 36
+Alocando endereço virtual 49 -> endereço físico 37
+Alocando endereço virtual 50 -> endereço físico 38
+Alocando endereço virtual 51 -> endereço físico 39
+Page fault: página 13 não está na memória física.
+A página 13 foi carregada na moldura 10.
+Alocando endereço virtual 52 -> endereço físico 40
+Alocando endereço virtual 53 -> endereço físico 41
+Alocando endereço virtual 54 -> endereço físico 42
+Alocando endereço virtual 55 -> endereço físico 43
+Page fault: página 14 não está na memória física.
+A página 14 foi carregada na moldura 11.
+Alocando endereço virtual 56 -> endereço físico 44
+Alocando endereço virtual 57 -> endereço físico 45
+Alocando endereço virtual 58 -> endereço físico 46
+Alocando endereço virtual 59 -> endereço físico 47
+Page fault: página 15 não está na memória física.
+A página 15 foi carregada na moldura 12.
+Alocando endereço virtual 60 -> endereço físico 48
+Alocando endereço virtual 61 -> endereço físico 49
+Alocando endereço virtual 62 -> endereço físico 50
+Alocando endereço virtual 63 -> endereço físico 51
+Todos os 64 endereços virtuais alocados com sucesso.
+Teste de Reutilização de Molduras:
+Endereço Virtual 2 -> Endereço Físico 2
+Endereço Virtual 4 -> Endereço Físico 2004
+Endereço Virtual 2 -> Endereço Físico 2
+Endereço Virtual 7 -> Endereço Físico 2007
+Endereço Virtual 5 -> Endereço Físico 2005
+Endereço Virtual 0 -> Endereço Físico 0
+Teste de Tamanho de Página Diferente:
+Endereço Virtual 10 -> Endereço Físico -1715731134
+Endereço Virtual 4 -> Endereço Físico 2004
+Endereço Virtual 9 -> Endereço Físico -1715731135
+Endereço Virtual 13 -> Endereço Físico 2005
+Endereço Virtual 10 -> Endereço Físico -1715731134
+Endereço Virtual 0 -> Endereço Físico 0
+Tradução de Endereços Virtuais para Físicos:
+Endereço Virtual 2 -> Endereço Físico 2
+Endereço Virtual 2 -> Endereço Físico 2
+Endereço Virtual 0 -> Endereço Físico 0
+Endereço Virtual 14 -> Endereço Físico 2006
+Endereço Virtual 0 -> Endereço Físico 0
+Estatísticas:
+Hits: 68
+Misses: 13
+Fim da bateria de teste. 1
